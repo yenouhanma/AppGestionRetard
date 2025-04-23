@@ -8,7 +8,7 @@ interface AuthCtx {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, mot_de_passe: string) => Promise<void>;
   signOut: () => void;
 }
 
@@ -32,11 +32,11 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
   }, []);
 
   // connexion
-  const signIn = async (email: string, password: string) => {
-    const res = await client.post('/auth/login', {email, password});
+  const signIn = async (email: string, mot_de_passe: string) => {
+    const res = await client.post('/auth/login', {email, mot_de_passe});
     await AsyncStorage.setItem('token', res.data.token);
     setToken(res.data.token);
-    setUser(res.data.professeur); // <- renvoyé par ton API
+    setUser(res.data.user); // <- renvoyé par ton API
   };
 
   // déconnexion

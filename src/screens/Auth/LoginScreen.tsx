@@ -9,7 +9,7 @@ import {
 import {useForm, Controller} from 'react-hook-form';
 import {useAuth} from '../../contexts/AuthContext';
 
-type FormData = {email: string; password: string};
+type FormData = {email: string; mot_de_passe: string};
 
 export default function LoginScreen() {
   const {control, handleSubmit} = useForm<FormData>();
@@ -18,7 +18,7 @@ export default function LoginScreen() {
   const onSubmit = async (data: FormData) => {
     try {
       setLoading(true);
-      await signIn(data.email, data.password);
+      await signIn(data.email, data.mot_de_passe);
     } catch (err) {
       console.warn('Erreur de connexion', err);
     } finally {
@@ -52,7 +52,7 @@ export default function LoginScreen() {
       <Text className="mb-1">Mot de passe</Text>
       <Controller
         control={control}
-        name="password"
+        name="mot_de_passe"
         rules={{required: true}}
         render={({field: {onChange, value}}) => (
           <TextInput
