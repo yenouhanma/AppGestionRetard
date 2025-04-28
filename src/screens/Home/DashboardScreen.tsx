@@ -1,34 +1,129 @@
 // src/screens/Home/DashboardScreen.tsx
-import React from 'react';
-import {View, Text, Pressable, StyleSheet} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, FlatList, ActivityIndicator, StyleSheet} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import {useAuth} from '../../contexts/AuthContext';
+import client from '../../api/client';
+import {Text, Card, Button, useTheme} from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as Animatable from 'react-native-animatable';
+import {theme} from '../../config/theme';
+
+interface Cours {
+  id: number;
+  nom: string;
+  description?: string;
+}
 
 export default function DashboardScreen() {
   const {user, signOut} = useAuth();
+  const navigation = useNavigation();
+  const [cours, setCours] = useState<Cours[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const {colors} = useTheme();
+
+  const fetchCours = async () => {
+    try {
+      const res = await client.get('/cours');
+      setCours(res.data);
+    } catch (err) {
+      console.error('Erreur lors de la récupération des cours', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCours();
+  }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchCours();
+  };
 
   return (
     <View style={styles.container}>
       <Animatable.View
         animation="fadeInDown"
-        duration={800}
-        style={styles.header}>
-        <Text style={styles.welcomeText}>Bienvenue {user?.nom}</Text>
+        style={[styles.header, {backgroundColor: colors.primary}]}>
+        <Icon name="account-circle" size={40} color="#fff" />
+        <Text variant="titleLarge" style={styles.welcomeText}>
+          Bonjour {user?.nom}
+        </Text>
         <Text style={styles.userEmail}>{user?.email}</Text>
       </Animatable.View>
 
       <View style={styles.content}>
-        {/* Vous pouvez ajouter d'autres éléments de dashboard ici */}
-        <Text style={styles.subtitle}>Tableau de bord</Text>
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          <Icon name="book" size={20} color={colors.primary} /> Vos cours
+        </Text>
 
-        <Pressable
-          style={({pressed}) => [
-            styles.logoutButton,
-            pressed && styles.logoutButtonPressed,
-          ]}
-          onPress={signOut}>
-          <Text style={styles.logoutButtonText}>Déconnexion</Text>
-        </Pressable>
+        {loading ? (
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={styles.loader}
+          />
+        ) : cours.length === 0 ? (
+          <Animatable.View animation="fadeIn" style={styles.emptyContainer}>
+            <Icon name="book-remove" size={40} color="#999" />
+            <Text style={styles.emptyText}>Aucun cours disponible</Text>
+          </Animatable.View>
+        ) : (
+          <FlatList
+            data={cours}
+            keyExtractor={(item) => item.id.toString()}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            renderItem={({item, index}) => (
+              <Animatable.View animation="fadeInUp" delay={index * 100}>
+                <Card style={styles.card}>
+                  <Card.Content>
+                    <View style={styles.cardHeader}>
+                      <Icon name="book-open" size={24} color={colors.primary} />
+                      <Text variant="titleMedium" style={styles.coursTitle}>
+                        {item.nom}
+                      </Text>
+                    </View>
+                    {item.description && (
+                      <Text style={styles.coursDescription}>
+                        {item.description}
+                      </Text>
+                    )}
+                  </Card.Content>
+                  <Card.Actions>
+                    <Button
+                      mode="text"
+                      icon="arrow-right"
+                      textColor={colors.primary}
+                      onPress={() =>
+                        navigation.navigate('CoursDetail', {
+                          coursId: item.id,
+                          coursNom: item.nom,
+                        })
+                      }>
+                      Voir détails
+                    </Button>
+                  </Card.Actions>
+                </Card>
+              </Animatable.View>
+            )}
+            contentContainerStyle={styles.listContent}
+          />
+        )}
+
+        <Button
+          mode="contained"
+          onPress={signOut}
+          style={styles.logoutButton}
+          icon="logout"
+          textColor="#fff"
+          theme={{roundness: theme.radius.medium}}>
+          Se déconnecter
+        </Button>
       </View>
     </View>
   );
@@ -37,63 +132,74 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: '#007AFF', // Bleu attirant
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingVertical: theme.spacing.large,
+    paddingHorizontal: theme.spacing.medium,
+    borderBottomLeftRadius: theme.radius.large,
+    borderBottomRightRadius: theme.radius.large,
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  subtitle: {
-    fontSize: 20,
-    color: '#007AFF', // Bleu attirant
-    fontWeight: '600',
-    marginBottom: 40,
-  },
-  logoutButton: {
-    backgroundColor: '#FF9500', // Orange
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 10,
-    marginTop: 20,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowRadius: 4,
   },
-  logoutButtonPressed: {
-    backgroundColor: '#E57C00', // Orange plus foncé
-    transform: [{scale: 0.98}],
-  },
-  logoutButtonText: {
+  welcomeText: {
+    marginTop: theme.spacing.small,
     color: '#fff',
-    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  userEmail: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 14,
+  },
+  content: {
+    flex: 1,
+    padding: theme.spacing.medium,
+  },
+  sectionTitle: {
+    marginBottom: theme.spacing.medium,
+    color: theme.colors.primary,
     fontWeight: '600',
+  },
+  loader: {
+    marginTop: theme.spacing.xlarge,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -50,
+  },
+  emptyText: {
+    marginTop: theme.spacing.medium,
+    color: theme.colors.textSecondary,
+  },
+  card: {
+    marginBottom: theme.spacing.medium,
+    borderRadius: theme.radius.medium,
+    backgroundColor: theme.colors.surface,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.small,
+  },
+  coursTitle: {
+    marginLeft: theme.spacing.small,
+    color: theme.colors.text,
+  },
+  coursDescription: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+  },
+  listContent: {
+    paddingBottom: theme.spacing.large,
+  },
+  logoutButton: {
+    marginTop: theme.spacing.medium,
+    backgroundColor: theme.colors.secondary,
   },
 });

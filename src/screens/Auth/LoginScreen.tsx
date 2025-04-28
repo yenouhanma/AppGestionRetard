@@ -1,20 +1,16 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ActivityIndicator,
-  StyleSheet,
-} from 'react-native';
+import {View, ActivityIndicator, StyleSheet} from 'react-native';
 import {useForm, Controller} from 'react-hook-form';
 import {useAuth} from '../../contexts/AuthContext';
 import * as Animatable from 'react-native-animatable';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {theme} from '../../config/theme';
+import {Text, TextInput, TouchableRipple} from 'react-native-paper';
 
 type FormData = {email: string; mot_de_passe: string};
 
 export default function LoginScreen() {
-  const {control, handleSubmit} = useForm<FormData>();
+  const {control, handleSubmit, formState} = useForm<FormData>();
   const {signIn} = useAuth();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -40,78 +36,117 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Connexion</Text>
+      <Animatable.View
+        animation="fadeInDown"
+        duration={1000}
+        style={styles.header}>
+        <Icon name="school" size={60} color={theme.colors.primary} />
+        <Text variant="headlineMedium" style={styles.title}>
+          Connexion
+        </Text>
+      </Animatable.View>
 
       {error !== '' && (
         <Animatable.View
           animation="shake"
           duration={600}
           style={styles.errorContainer}>
+          <Icon name="alert-circle" size={20} color={theme.colors.error} />
           <Text style={styles.errorText}>{error}</Text>
         </Animatable.View>
       )}
 
       {success !== '' && (
         <Animatable.View animation="fadeIn" style={styles.successContainer}>
+          <Icon name="check-circle" size={20} color={theme.colors.success} />
           <Text style={styles.successText}>{success}</Text>
         </Animatable.View>
       )}
 
-      <Text style={styles.label}>Email</Text>
       <Controller
         control={control}
         name="email"
         rules={{required: "L'email est requis"}}
         render={({field: {onChange, value}, fieldState: {error}}) => (
           <>
+            <Text style={styles.label}>Email</Text>
             <TextInput
-              style={[styles.input, error && styles.inputErrorBorder]}
-              placeholder="professeur@mail.com"
-              placeholderTextColor="#999"
-              autoCapitalize="none"
+              mode="outlined"
+              left={<TextInput.Icon icon="email" />}
+              style={styles.input}
               keyboardType="email-address"
+              placeholder="professeur@mail.com"
               value={value}
               onChangeText={onChange}
+              error={!!error}
+              theme={{
+                colors: {
+                  primary: theme.colors.primary,
+                  error: theme.colors.error,
+                },
+                roundness: theme.radius.medium,
+              }}
             />
-            {error && <Text style={styles.inputError}>{error.message}</Text>}
+            {error && (
+              <Text style={styles.inputError}>
+                <Icon name="alert" size={14} /> {error.message}
+              </Text>
+            )}
           </>
         )}
       />
 
-      <Text style={styles.label}>Mot de passe</Text>
       <Controller
         control={control}
         name="mot_de_passe"
         rules={{required: 'Mot de passe requis'}}
         render={({field: {onChange, value}, fieldState: {error}}) => (
           <>
+            <Text style={styles.label}>Mot de passe</Text>
             <TextInput
-              style={[styles.input, error && styles.inputErrorBorder]}
+              mode="outlined"
+              left={<TextInput.Icon icon="lock" />}
+              right={<TextInput.Icon icon="eye" />}
+              style={styles.input}
               placeholder="••••••••"
-              placeholderTextColor="#999"
               secureTextEntry
               value={value}
               onChangeText={onChange}
+              error={!!error}
+              theme={{
+                colors: {
+                  primary: theme.colors.primary,
+                  error: theme.colors.error,
+                },
+                roundness: theme.radius.medium,
+              }}
             />
-            {error && <Text style={styles.inputError}>{error.message}</Text>}
+            {error && (
+              <Text style={styles.inputError}>
+                <Icon name="alert" size={14} /> {error.message}
+              </Text>
+            )}
           </>
         )}
       />
 
-      <Pressable
-        style={({pressed}) => [
+      <TouchableRipple
+        style={[
           styles.button,
-          pressed && styles.buttonPressed,
-          loading && styles.buttonDisabled,
+          (loading || !formState.isValid) && styles.buttonDisabled,
         ]}
         onPress={handleSubmit(onSubmit)}
-        disabled={loading}>
+        disabled={loading || !formState.isValid}
+        rippleColor="rgba(255, 255, 255, 0.32)">
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Se connecter</Text>
+          <View style={styles.buttonContent}>
+            <Icon name="login" size={20} color="#fff" />
+            <Text style={styles.buttonText}>Se connecter</Text>
+          </View>
         )}
-      </Pressable>
+      </TouchableRipple>
     </View>
   );
 }
@@ -119,91 +154,89 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    padding: theme.spacing.xlarge,
+    backgroundColor: theme.colors.background,
     justifyContent: 'center',
   },
+  header: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.xlarge,
+  },
   title: {
-    fontSize: 28,
+    marginTop: theme.spacing.medium,
     fontWeight: 'bold',
-    color: '#007AFF', // Bleu attirant
-    marginBottom: 30,
+    color: theme.colors.primary,
     textAlign: 'center',
   },
   label: {
-    fontSize: 16,
-    color: '#007AFF', // Bleu attirant
-    marginBottom: 8,
+    marginBottom: theme.spacing.small,
+    color: theme.colors.primary,
     fontWeight: '500',
   },
   input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#007AFF', // Bleu attirant
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    fontSize: 16,
-    backgroundColor: '#fff',
-    color: '#333',
-  },
-  inputErrorBorder: {
-    borderColor: '#FF3B30', // Rouge pour les erreurs
+    marginBottom: theme.spacing.medium,
+    backgroundColor: theme.colors.background,
   },
   inputError: {
-    color: '#FF3B30', // Rouge pour les erreurs
+    color: theme.colors.error,
     fontSize: 14,
-    marginTop: -10,
-    marginBottom: 15,
+    marginTop: -theme.spacing.small,
+    marginBottom: theme.spacing.medium,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   button: {
-    backgroundColor: '#FF9500', // Orange
-    height: 50,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.radius.medium,
+    paddingVertical: theme.spacing.medium,
+    marginTop: theme.spacing.large,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
-  buttonPressed: {
-    backgroundColor: '#E57C00', // Orange plus foncé pour l'état pressé
-  },
   buttonDisabled: {
-    backgroundColor: '#FFB74D', // Orange plus clair pour désactivé
+    backgroundColor: '#FFB74D',
+    opacity: 0.7,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: theme.colors.background,
     fontSize: 18,
     fontWeight: '600',
+    marginLeft: theme.spacing.small,
   },
   errorContainer: {
-    backgroundColor: '#FFEBEE', // Fond rouge clair
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 20,
+    backgroundColor: '#FFEBEE',
+    padding: theme.spacing.medium,
+    borderRadius: theme.radius.medium,
+    marginBottom: theme.spacing.large,
     borderWidth: 1,
     borderColor: '#FFCDD2',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   errorText: {
-    color: '#FF3B30', // Rouge pour erreur
-    textAlign: 'center',
-    fontSize: 15,
+    color: theme.colors.error,
+    marginLeft: theme.spacing.small,
   },
   successContainer: {
-    backgroundColor: '#E8F5E9', // Fond vert clair
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 20,
+    backgroundColor: '#E8F5E9',
+    padding: theme.spacing.medium,
+    borderRadius: theme.radius.medium,
+    marginBottom: theme.spacing.large,
     borderWidth: 1,
     borderColor: '#C8E6C9',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   successText: {
-    color: '#4CAF50', // Vert pour succès
-    textAlign: 'center',
-    fontSize: 15,
+    color: theme.colors.success,
+    marginLeft: theme.spacing.small,
   },
 });
