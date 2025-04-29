@@ -56,7 +56,7 @@ export default function StatsScreen() {
         >
             <Card.Content style={styles.cardContent}>
             <Icon name="check-circle" size={40} color="#fff" />
-            <Text style={styles.cardText}>Présents: {stats.present}</Text>
+            <Text style={styles.cardText}>Présents : {stats.present}</Text>
             </Card.Content>
         </Card>
 

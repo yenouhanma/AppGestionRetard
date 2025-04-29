@@ -1,7 +1,7 @@
 // src/screens/Cours/ListeElevesScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import client from '../../api/client';
 import * as Animatable from 'react-native-animatable';
 import { Card } from 'react-native-paper';
@@ -18,6 +18,7 @@ interface Presence {
 
 export default function ListeElevesScreen() {
   const route = useRoute<any>();
+  const navigation = useNavigation();
   const { coursId, coursNom, etat } = route.params;
 
   const [presences, setPresences] = useState<Presence[]>([]);
@@ -87,26 +88,32 @@ export default function ListeElevesScreen() {
           data={presences}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item, index }) => (
-            <Animatable.View
-              animation="fadeInUp"
-              delay={index * 100}
-              style={styles.eleveCard}
-            >
-              <Card style={[styles.card, { borderLeftColor: getEtatColor(item.etat) }]}>
+            <Animatable.View animation="fadeInUp" delay={index * 100}>
+              <Card
+                style={[styles.card, { borderLeftColor: getEtatColor(item.etat) }]}
+                onPress={() =>
+                navigation.navigate('EleveDetail', { eleve: item })
+                }
+              >
                 <Card.Content style={styles.cardContent}>
-                  <Icon
+                <Icon
                     name={getEtatIcon(item.etat)}
                     size={30}
                     color={getEtatColor(item.etat)}
                     style={{ marginRight: 12 }}
-                  />
-                  <View>
-                    <Text style={styles.eleveName}>Élève ID : {item.eleve_id}</Text>
-                    <Text style={styles.time}>Marqué à {formatTime(item.created_at)}</Text>
-                  </View>
+                />
+                <View>
+                    <Text style={styles.eleveName}>
+                    {item.nom} {item.prenom}
+                    </Text>
+                    <Text style={styles.time}>
+                    Marqué à {formatTime(item.created_at)}
+                    </Text>
+                </View>
                 </Card.Content>
               </Card>
             </Animatable.View>
+
           )}
           contentContainerStyle={{ paddingBottom: 60 }}
         />
@@ -119,47 +126,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f4f7fc',
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingTop: 20,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#0a3d62',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    letterSpacing: 0.5,
   },
   errorText: {
     color: '#e74c3c',
-    marginTop: 30,
+    fontSize: 16,
     textAlign: 'center',
+    marginTop: 40,
   },
   emptyText: {
-    marginTop: 30,
+    fontSize: 15,
+    color: '#7f8c8d',
     textAlign: 'center',
-    color: '#999',
-  },
-  eleveCard: {
-    marginBottom: 12,
+    marginTop: 40,
   },
   card: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    marginBottom: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
     borderLeftWidth: 5,
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: '#fff',
-    elevation: 2,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
   },
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   eleveName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-    color: '#34495e',
+    color: '#2d3436',
+    marginBottom: 2,
   },
   time: {
-    fontSize: 12,
-    color: '#7f8c8d',
+    fontSize: 13,
+    color: '#636e72',
   },
 });
+
