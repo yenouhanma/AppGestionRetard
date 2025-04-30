@@ -1,0 +1,24 @@
+### VARIABLES (le token est à récupérer après connexion)
+@url = http://localhost:5000
+@token = Bearer VOTRE_TOKEN_ICY_APRÈS_CONNEXION
+
+### Ajouter un élève : remplacer les valeurs par défaut ou ajouter d'autres champs
+POST {{url}}/eleves
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "nom": "Ouédraogo",
+  "prenom": "Ibrahim",
+  "email": "ibrahim.o@gmail.com",
+  "classe": "Licence 3",
+}
+
+### Récupérer tous les élèves
+GET {{url}}/eleves
+Authorization: {{token}}
+
+### Récupérer un élève par ID (exemple: id = 1 pour cet élève)
+### Remplacer l'id par celui de l'élève que vous souhaitez consulter
+GET {{url}}/eleves/1
+Authorization: {{token}}

@@ -1,0 +1,6 @@
+### VARIABLES (le token est à récupérer après connexion)
+@url = http://localhost:5000
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwibm9tIjoiUHJvZmVzc2V1ciBNQU5PIiwiZW1haWwiOiJ0YWxkaWcyMEBnbWFpbC5jb20iLCJyb2xlIjoicHJvZmVzc2V1ciIsImlhdCI6MTc0NjAzMTUwMywiZXhwIjoxNzQ2MDc0NzAzfQ.OGmNmd3ySDdvRdbu4N-nSWE4iBpKYZ4-YPvC0zTppiE
+
+GET {{url}}/presences/eleve/8/stats
+Authorization: {{token}}

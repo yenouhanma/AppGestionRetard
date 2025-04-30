@@ -1,0 +1,21 @@
+### VARIABLES (le token est à récupérer après connexion)
+@url = http://localhost:5000
+@token = Bearer VOTRE_TOKEN_ICY_APRÈS_CONNEXION
+
+### Créer un cours : remplacer les valeurs par défaut ou ajouter d'autres champs
+POST {{url}}/cours
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "nom": "Algorithmes avancés",
+}
+
+### Obtenir tous les cours du professeur connecté 
+GET {{url}}/cours
+Authorization: {{token}}
+
+### Voir les élèves inscrits à un cours donné (exemple: id = 1 pour ce cours)
+### Remplacer l'id par celui du cours que vous souhaitez consulter
+GET {{url}}/cours/1/eleves
+Authorization: {{token}}

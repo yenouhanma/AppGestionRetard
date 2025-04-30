@@ -1,0 +1,19 @@
+### Inscription d’un professeur : remplacer les valeurs par défaut
+POST http://localhost:5000/auth/register
+Content-Type: application/json
+
+{
+  "nom": "Professeur Alpha",
+  "email": "professeur@gmail.com",
+  "mot_de_passe": "password123",
+  "role": "professeur",
+}
+
+### Connexion du professeur : remplacer les valeurs par défaut
+POST http://localhost:5000/auth/login
+Content-Type: application/json
+
+{
+  "email": "taldig20@gmail.com",
+  "mot_de_passe": "password"
+}

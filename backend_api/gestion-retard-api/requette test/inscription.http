@@ -1,0 +1,14 @@
+### VARIABLES (le token est à récupérer après connexion)
+@url = http://localhost:5000
+@token = Bearer VOTRE_TOKEN_ICY_APRÈS_CONNEXION
+
+### Inscrire un élève à un cours : remplacer les valeurs par défaut (id élève et id cours)
+### Remplacer l'id par celui de l'élève et du cours que vous souhaitez inscrire
+POST {{url}}/inscriptions
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "eleve_id": 1,
+  "cours_id": 3
+}
