@@ -7,7 +7,7 @@ import {useAuth} from '../contexts/AuthContext';
 export default function RootNavigation() {
   const {token, isLoading} = useAuth();
 
-  if (isLoading) return null; // SplashScreen plus tard
+  if (isLoading) return null;
 
   return (
     <NavigationContainer>

@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({
     const res = await client.post('/auth/login', {email, mot_de_passe});
     await AsyncStorage.setItem('token', res.data.token);
     setToken(res.data.token);
-    setUser(res.data.user); // <- renvoyé par ton API
+    setUser(res.data.user);
   };
 
   // déconnexion

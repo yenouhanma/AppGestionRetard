@@ -100,10 +100,7 @@ export default function DashboardScreen() {
                       icon="arrow-right"
                       textColor={colors.primary}
                       onPress={() =>
-                        navigation.navigate('CoursDetail', {
-                          coursId: item.id,
-                          coursNom: item.nom,
-                        })
+                        navigation.navigate('CoursDetail', {coursId: item.id, coursNom: item.nom})
                       }>
                       Voir détails
                     </Button>

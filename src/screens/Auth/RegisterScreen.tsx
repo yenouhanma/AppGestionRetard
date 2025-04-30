@@ -1,22 +1,25 @@
-// src/screens/Auth/LoginScreen.tsx
 import React from 'react';
-import {View, ActivityIndicator, StyleSheet} from 'react-native';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
 import {useForm} from 'react-hook-form';
-import {useAuth} from '../../contexts/AuthContext';
-import {useNavigation} from '@react-navigation/native';
-import * as Animatable from 'react-native-animatable';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {theme} from '../../config/theme';
-import {InputField} from '../../components/common/InputField';
-import {PasswordInputField} from '../../components/common/PasswordInputField';
 import {Text, TouchableRipple} from 'react-native-paper';
+import {useNavigation} from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import * as Animatable from 'react-native-animatable';
+import {PasswordInputField} from '../../components/common/PasswordInputField';
+import client from '../../api/client';
+import {InputField} from '../../components/common/InputField';
+import {theme} from '../../config/theme';
 
-type FormData = {email: string; mot_de_passe: string};
+type FormData = {
+  nom: string;
+  email: string;
+  mot_de_passe: string;
+  confirmer_mot_de_passe: string;
+};
 
-export default function LoginScreen() {
-  const {control, handleSubmit, formState} = useForm<FormData>();
+export default function RegisterScreen() {
+  const {control, handleSubmit, formState, watch} = useForm<FormData>();
   const navigation = useNavigation();
-  const {signIn} = useAuth();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [success, setSuccess] = React.useState('');
@@ -26,13 +29,21 @@ export default function LoginScreen() {
     setSuccess('');
     try {
       setLoading(true);
-      await signIn(data.email, data.mot_de_passe);
-      setSuccess('Connexion réussie !');
+      await client.post('/auth/register', {
+        nom: data.nom,
+        email: data.email,
+        mot_de_passe: data.mot_de_passe,
+        role: 'professeur',
+      });
+      setSuccess('Inscription réussie ! Redirection...');
+      setTimeout(() => {
+        navigation.navigate('Login'); // nom de l’écran de login
+      }, 3000);
     } catch (err: any) {
-      if (err.response?.status === 401 || err.response?.status === 404) {
-        setError('Email ou mot de passe incorrect.');
+      if (err.response?.status === 409) {
+        setError('Cet email est déjà utilisé.');
       } else {
-        setError('Erreur serveur. Veuillez réessayer.');
+        setError('Erreur lors de l’inscription.');
       }
     } finally {
       setLoading(false);
@@ -45,17 +56,14 @@ export default function LoginScreen() {
         animation="fadeInDown"
         duration={1000}
         style={styles.header}>
-        <Icon name="school" size={60} color={theme.colors.primary} />
+        <Icon name="account-plus" size={60} color={theme.colors.primary} />
         <Text variant="headlineMedium" style={styles.title}>
-          Connexion
+          Créer un compte
         </Text>
       </Animatable.View>
 
       {error !== '' && (
-        <Animatable.View
-          animation="shake"
-          duration={600}
-          style={styles.errorContainer}>
+        <Animatable.View animation="shake" style={styles.errorContainer}>
           <Icon name="alert-circle" size={20} color={theme.colors.error} />
           <Text style={styles.errorText}>{error}</Text>
         </Animatable.View>
@@ -70,12 +78,21 @@ export default function LoginScreen() {
 
       <InputField
         control={control}
+        name="nom"
+        label="Nom"
+        placeholder="Entrer votre nom complet"
+        icon="account"
+        rules={{required: 'Nom requis'}}
+      />
+
+      <InputField
+        control={control}
         name="email"
         label="Email"
         placeholder="professeur@mail.com"
         icon="email"
         keyboardType="email-address"
-        rules={{required: "L'email est requis"}}
+        rules={{required: 'Email requis'}}
       />
 
       <PasswordInputField
@@ -85,20 +102,32 @@ export default function LoginScreen() {
         rules={{required: 'Mot de passe requis'}}
       />
 
+      <PasswordInputField
+        control={control}
+        name="confirmer_mot_de_passe"
+        label="Confirmer le mot de passe"
+        rules={{
+          required: 'Confirmation requise',
+          validate: (value) =>
+            value === watch('mot_de_passe') ||
+            'Les mots de passe ne correspondent pas.',
+        }}
+        icon="lock-check"
+      />
+
       <TouchableRipple
         style={[
           styles.button,
-          (loading || !formState.isValid) && styles.buttonDisabled,
+          loading || !formState.isValid && styles.buttonDisabled
         ]}
         onPress={handleSubmit(onSubmit)}
-        disabled={loading || !formState.isValid}
-        rippleColor="rgba(255, 255, 255, 0.32)">
+        disabled={loading || !formState.isValid}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <View style={styles.buttonContent}>
-            <Icon name="login" size={20} color="#fff" />
-            <Text style={styles.buttonText}>Se connecter</Text>
+            <Icon name="account-plus" size={20} color="#fff" />
+            <Text style={styles.buttonText}>S'inscrire</Text>
           </View>
         )}
       </TouchableRipple>
@@ -108,8 +137,8 @@ export default function LoginScreen() {
           color: theme.colors.primary,
           marginTop: 20,
         }}
-        onPress={() => navigation.navigate('Register')}>
-        Vous n'avez pas de compte ? Créez-en un
+        onPress={() => navigation.navigate('Login')}>
+        Vous avez déjà un compte ? Connectez-vous
       </Text>
     </View>
   );
@@ -144,21 +173,13 @@ const styles = StyleSheet.create({
   inputError: {
     color: theme.colors.error,
     fontSize: 14,
-    marginTop: -theme.spacing.small,
     marginBottom: theme.spacing.medium,
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   button: {
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.radius.medium,
     paddingVertical: theme.spacing.medium,
     marginTop: theme.spacing.large,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
   },
   buttonDisabled: {
     backgroundColor: '#FFB74D',
@@ -166,13 +187,13 @@ const styles = StyleSheet.create({
   },
   buttonContent: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
-    color: theme.colors.background,
-    fontSize: 18,
+    color: '#fff',
     fontWeight: '600',
+    fontSize: 16,
     marginLeft: theme.spacing.small,
   },
   errorContainer: {
@@ -185,10 +206,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  errorText: {
-    color: theme.colors.error,
-    marginLeft: theme.spacing.small,
-  },
   successContainer: {
     backgroundColor: '#E8F5E9',
     padding: theme.spacing.medium,
@@ -198,6 +215,10 @@ const styles = StyleSheet.create({
     borderColor: '#C8E6C9',
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  errorText: {
+    color: theme.colors.error,
+    marginLeft: theme.spacing.small,
   },
   successText: {
     color: theme.colors.success,

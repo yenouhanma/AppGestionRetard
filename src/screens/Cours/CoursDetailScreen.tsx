@@ -1,12 +1,19 @@
 // src/screens/Cours/CoursDetailScreen.tsx
-import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View, FlatList, StyleSheet} from 'react-native';
+import {useRoute, useNavigation} from '@react-navigation/native';
 import client from '../../api/client';
-import { Button, Snackbar, Text, Card, ActivityIndicator, useTheme } from 'react-native-paper';
+import {
+  Button,
+  Snackbar,
+  Text,
+  Card,
+  ActivityIndicator,
+  useTheme,
+} from 'react-native-paper';
 import * as Animatable from 'react-native-animatable';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { theme } from '../../config/theme';
+import {theme} from '../../config/theme';
 
 interface Eleve {
   id: number;
@@ -18,8 +25,8 @@ interface Eleve {
 export default function CoursDetailScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation();
-  const { colors } = useTheme();
-  const { coursId, coursNom } = route.params;
+  const {colors} = useTheme();
+  const {coursId, coursNom} = route.params;
 
   const [eleves, setEleves] = useState<Eleve[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +52,10 @@ export default function CoursDetailScreen() {
     fetchEleves();
   }, [coursId]);
 
-  const marquerPresence = async (eleveId: number, etat: 'present' | 'retard' | 'absent') => {
+  const marquerPresence = async (
+    eleveId: number,
+    etat: 'present' | 'retard' | 'absent',
+  ) => {
     try {
       await client.post('/presences', {
         eleve_id: eleveId,
@@ -53,13 +63,17 @@ export default function CoursDetailScreen() {
         date_cours: new Date().toISOString().split('T')[0],
         etat,
       });
-      
-      setSnackbarMessage(`Présence "${etat}" enregistrée pour ${eleves.find(e => e.id === eleveId)?.prenom}`);
+
+      setSnackbarMessage(
+        `Présence "${etat}" enregistrée pour ${
+          eleves.find(e => e.id === eleveId)?.prenom
+        }`,
+      );
       setSnackbarColor(getStatusColor(etat));
       setSnackbarVisible(true);
     } catch (err) {
       console.error('Erreur marquage présence', err);
-      setSnackbarMessage('Erreur lors de l\'enregistrement');
+      setSnackbarMessage("Erreur lors de l'enregistrement");
       setSnackbarColor(colors.error);
       setSnackbarVisible(true);
     }
@@ -67,45 +81,54 @@ export default function CoursDetailScreen() {
 
   const getStatusColor = (etat: string) => {
     switch (etat) {
-      case 'present': return '#24CF5D';
-      case 'retard': return '#FFA500'; // Orange
-      case 'absent': return colors.error;
-      default: return colors.primary;
+      case 'present':
+        return '#24CF5D';
+      case 'retard':
+        return '#FFA500';
+      case 'absent':
+        return colors.error;
+      default:
+        return colors.primary;
     }
   };
 
   const getStatusIcon = (etat: string) => {
     switch (etat) {
-      case 'present': return 'check-circle';
-      case 'retard': return 'clock-alert';
-      case 'absent': return 'close-circle';
-      default: return 'help-circle';
+      case 'present':
+        return 'check-circle';
+      case 'retard':
+        return 'clock-alert';
+      case 'absent':
+        return 'close-circle';
+      default:
+        return 'help-circle';
     }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, {backgroundColor: colors.background}]}>
       <Animatable.View animation="fadeInDown">
-        <Text variant="titleLarge" style={[styles.title, { color: colors.primary }]}>
+        <Text
+          variant="titleLarge"
+          style={[styles.title, {color: colors.primary}]}>
           <Icon name="book-open" size={24} /> {coursNom}
         </Text>
       </Animatable.View>
 
       <Button
         mode="contained"
-        onPress={() => navigation.navigate('Stats', { coursId, coursNom })}
+        onPress={() => navigation.navigate('Stats', {coursId, coursNom})}
         icon="chart-bar"
         style={styles.statsButton}
         labelStyle={styles.buttonLabel}
-        theme={{ roundness: theme.radius.medium }}
-      >
+        theme={{roundness: theme.radius.medium}}>
         Voir les statistiques
       </Button>
 
       {loading ? (
-        <ActivityIndicator 
-          size="large" 
-          color={colors.primary} 
+        <ActivityIndicator
+          size="large"
+          color={colors.primary}
           style={styles.loader}
         />
       ) : (
@@ -113,11 +136,8 @@ export default function CoursDetailScreen() {
           data={eleves}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
-          renderItem={({ item, index }) => (
-            <Animatable.View
-              animation="fadeInUp"
-              delay={index * 100}
-            >
+          renderItem={({item, index}) => (
+            <Animatable.View animation="fadeInUp" delay={index * 100}>
               <Card style={styles.card}>
                 <Card.Content style={styles.cardContent}>
                   <View style={styles.eleveInfo}>
@@ -126,10 +146,11 @@ export default function CoursDetailScreen() {
                       {item.prenom} {item.nom}
                     </Text>
                   </View>
-                  <Text style={[styles.eleveEmail, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[styles.eleveEmail, {color: colors.textSecondary}]}>
                     {item.email}
                   </Text>
-                  
+
                   <View style={styles.actions}>
                     {['present', 'retard', 'absent'].map((etat) => (
                       <Button
@@ -139,12 +160,11 @@ export default function CoursDetailScreen() {
                         onPress={() => marquerPresence(item.id, etat as any)}
                         style={[
                           styles.statusButton,
-                          { backgroundColor: getStatusColor(etat) }
+                          {backgroundColor: getStatusColor(etat)},
                         ]}
                         icon={getStatusIcon(etat)}
                         labelStyle={styles.buttonLabel}
-                        theme={{ roundness: theme.radius.small }}
-                      >
+                        theme={{roundness: theme.radius.small}}>
                         {etat.charAt(0).toUpperCase() + etat.slice(1)}
                       </Button>
                     ))}
@@ -155,8 +175,12 @@ export default function CoursDetailScreen() {
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Icon name="account-group" size={40} color={colors.textSecondary} />
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              <Icon
+                name="account-group"
+                size={40}
+                color={colors.textSecondary}
+              />
+              <Text style={[styles.emptyText, {color: colors.textSecondary }]}>
                 Aucun élève inscrit à ce cours
               </Text>
             </View>
@@ -168,13 +192,12 @@ export default function CoursDetailScreen() {
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
         duration={2000}
-        style={{ backgroundColor: snackbarColor }}
+        style={{backgroundColor: snackbarColor}}
         action={{
           label: 'OK',
           onPress: () => setSnackbarVisible(false),
-        }}
-      >
-        <Text style={{ color: '#fff' }}>{snackbarMessage}</Text>
+        }}>
+        <Text style={{color: '#fff'}}>{snackbarMessage}</Text>
       </Snackbar>
     </View>
   );

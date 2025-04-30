@@ -1,3 +1,4 @@
+//src/components/common/Button.tsx
 import React from 'react';
 import {TouchableRipple, Text} from 'react-native-paper';
 import {StyleSheet} from 'react-native';
